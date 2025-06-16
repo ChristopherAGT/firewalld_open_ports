@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # ╔══════════════════════════════════════════════════════════╗
-# ║            🔥 FIREWALLD - APERTURA DE PUERTOS TCP/UDP     ║
-# ║       Script amigable para configuración de firewalld     ║
+# ║            🔥 FIREWALLD - APERTURA DE PUERTOS TCP/UDP              ║
+# ║            👾 Autor: ChristopherAGT - Guatemalteco 🇬🇹              ║
 # ╚══════════════════════════════════════════════════════════╝
 
 # 🛑 Requiere permisos de superusuario
@@ -18,37 +18,118 @@ azul="\033[1;34m"
 amarillo="\033[1;33m"
 neutro="\033[0m"
 
-# 🔄 Actualización del sistema
-echo -e "\n${azul}🔄 Actualizando lista de paquetes...${neutro}"
-apt-get update -y
+# 🔄 Spinner animado
+spinner() {
+  local pid=$1
+  local delay=0.1
+  local spinstr='|/-\'
+  tput civis
+  while ps -p $pid &>/dev/null; do
+    local temp=${spinstr#?}
+    printf " [%c]  " "$spinstr"
+    spinstr=$temp${spinstr%"$temp"}
+    sleep $delay
+    printf "\b\b\b\b\b\b"
+  done
+  tput cnorm
+}
 
-# 🔧 Instalación de firewalld si no está presente
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+echo -e "${azul}"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "🔄  ACTUALIZANDO LISTA DE PAQUETES DEL SISTEMA"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo -e "${neutro}"
+
+apt-get update -y &> /dev/null &
+spinner $!
+echo -e "${verde}✔ Lista de paquetes actualizada.${neutro}"
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+echo -e "${azul}"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "📦  VERIFICANDO INSTALACIÓN DE FIREWALLD"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo -e "${neutro}"
+
 if ! command -v firewall-cmd &> /dev/null; then
-  echo -e "${amarillo}📦 firewalld no está instalado. Procediendo con la instalación...${neutro}"
-  apt-get install -y firewalld
+  echo -e "${amarillo}📦 firewalld no está instalado. Instalando...${neutro}"
+  apt-get install -y firewalld &> /dev/null &
+  spinner $!
+  if ! command -v firewall-cmd &> /dev/null; then
+    echo -e "${rojo}❌ La instalación de firewalld falló. Abortando.${neutro}"
+    exit 1
+  fi
+  echo -e "${verde}✔ firewalld instalado correctamente.${neutro}"
 else
   echo -e "${verde}✔ firewalld ya está instalado.${neutro}"
 fi
 
-# 🚀 Iniciar y habilitar firewalld
-echo -e "\n${azul}🚀 Iniciando y habilitando firewalld...${neutro}"
-systemctl enable firewalld
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+echo -e "${azul}"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "🚀  INICIANDO Y HABILITANDO FIREWALLD"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo -e "${neutro}"
+
+systemctl enable firewalld &> /dev/null
 systemctl start firewalld
 
-# 🔓 Apertura de puertos TCP y UDP
-echo -e "\n${amarillo}🔓 Aperturando todos los puertos TCP y UDP (1-65535)...${neutro}"
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+echo -e "${amarillo}"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "⚠️  ¡ATENCIÓN! APERTURA TOTAL DE PUERTOS"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo -e "${neutro}"
+echo -e "🔐 Estás a punto de abrir *TODOS* los puertos TCP y UDP (1-65535).\n"
+read -p "¿Deseas continuar? [s/N]: " confirm
+if [[ ! "$confirm" =~ ^[sS]$ ]]; then
+  echo -e "${rojo}❌ Operación cancelada por el usuario.${neutro}"
+  exit 1
+fi
 
-firewall-cmd --zone=public --permanent --add-port=1-65535/tcp
-firewall-cmd --zone=public --permanent --add-port=1-65535/udp
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+echo -e "${azul}"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "🔍  VERIFICANDO PUERTOS ACTUALMENTE ABIERTOS"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo -e "${neutro}"
 
-# ♻️ Recargar firewalld
-echo -e "\n${azul}♻️ Recargando reglas de firewalld...${neutro}"
+if firewall-cmd --zone=public --list-ports | grep -q "1-65535/tcp"; then
+  echo -e "${amarillo}⚠️ Los puertos TCP ya están abiertos.${neutro}"
+else
+  echo -e "${amarillo}🔓 Abriendo puertos TCP...${neutro}"
+  firewall-cmd --zone=public --permanent --add-port=1-65535/tcp
+fi
+
+if firewall-cmd --zone=public --list-ports | grep -q "1-65535/udp"; then
+  echo -e "${amarillo}⚠️ Los puertos UDP ya están abiertos.${neutro}"
+else
+  echo -e "${amarillo}🔓 Abriendo puertos UDP...${neutro}"
+  firewall-cmd --zone=public --permanent --add-port=1-65535/udp
+fi
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+echo -e "${azul}"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "♻️  REINICIANDO CONFIGURACIÓN FIREWALLD"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo -e "${neutro}"
+
 firewall-cmd --reload
 
-# 📋 Listado de puertos abiertos
-echo -e "\n${verde}📋 Puertos abiertos actualmente en zona 'public':${neutro}"
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+echo -e "${verde}"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "📋  PUERTOS ABIERTOS EN ZONA 'public'"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo -e "${neutro}"
+
 firewall-cmd --zone=public --list-ports
 
-# ✅ Finalización
-echo -e "\n${verde}✅ Configuración completada con éxito.${neutro}"
-echo -e "${amarillo}⚠️ Nota: abrir todos los puertos es riesgoso. Se recomienda usarlo solo en entornos controlados.${neutro}\n"
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+echo -e "${verde}"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "✅  CONFIGURACIÓN COMPLETADA CON ÉXITO"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo -e "${amarillo}⚠️ Recuerda: abrir todos los puertos es riesgoso. Úsalo sólo en entornos seguros.${neutro}\n"
