@@ -82,11 +82,14 @@ echo "⚠️  ¡ATENCIÓN! APERTURA TOTAL DE PUERTOS"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo -e "${neutro}"
 echo -e "🔐 Estás a punto de abrir *TODOS* los puertos TCP y UDP (1-65535).\n"
-read -p "¿Deseas continuar? [s/N]: " confirm
-if [[ ! "$confirm" =~ ^[sS]$ ]]; then
-  echo -e "${rojo}❌ Operación cancelada por el usuario.${neutro}"
-  exit 1
-fi
+while true; do
+  read -p "¿Deseas continuar? [s/N]: " confirm
+  case "$confirm" in
+    [sS]) break ;;  # Continua el script
+    [nN]|"") echo -e "${rojo}❌ Operación cancelada por el usuario.${neutro}"; exit 1 ;;
+    *) echo -e "${amarillo}⚠️ Respuesta no válida. Ingresa 's' para sí o 'n' para no.${neutro}" ;;
+  esac
+done
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 echo -e "${azul}"
