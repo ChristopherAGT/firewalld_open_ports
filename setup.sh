@@ -83,7 +83,7 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo -e "${neutro}"
 echo -e "🔐 Estás a punto de abrir *TODOS* los puertos TCP y UDP (1-65535).\n"
 while true; do
-  read -p "¿Deseas continuar? [s/N]: " confirm
+  read -p "¿Deseas continuar? [s/n]: " confirm
   case "$confirm" in
     [sS]) break ;;  # Continua el script
     [nN]|"") echo -e "${rojo}❌ Operación cancelada por el usuario.${neutro}"; exit 1 ;;
